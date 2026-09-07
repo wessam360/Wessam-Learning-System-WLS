@@ -2,6 +2,8 @@ import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { getSession } from '@/lib/auth';
 
+export const dynamic = 'force-dynamic';
+
 export async function POST(req: Request) {
   try {
     const session = await getSession();
@@ -16,7 +18,6 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'Submission ID is required.' }, { status: 400 });
     }
 
-    // Verify submission existence
     const submission = await prisma.projectSubmission.findUnique({
       where: { id: submissionId },
     });
@@ -25,7 +26,6 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'Submission not found.' }, { status: 404 });
     }
 
-    // Data isolation check for teachers
     if (session.role === 'TEACHER') {
       const tp = session.teacherProfileId
         ? session.teacherProfileId
@@ -111,7 +111,6 @@ export async function POST(req: Request) {
         },
       });
 
-      // Update submission status to EVALUATED
       await prisma.projectSubmission.update({
         where: { id: submissionId },
         data: { status: 'EVALUATED' },

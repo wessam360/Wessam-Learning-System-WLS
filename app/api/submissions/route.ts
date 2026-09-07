@@ -1,6 +1,8 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 
+export const dynamic = 'force-dynamic';
+
 export async function POST(req: Request) {
   try {
     const body = await req.json();
@@ -92,7 +94,6 @@ export async function POST(req: Request) {
 }
 
 export async function GET() {
-  // Public summary counts if needed
   try {
     const totalCount = await prisma.projectSubmission.count();
     const evaluatedCount = await prisma.projectSubmission.count({
