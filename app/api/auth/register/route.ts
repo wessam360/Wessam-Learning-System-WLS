@@ -74,10 +74,13 @@ export async function POST(req: Request) {
     });
 
     return response;
-  } catch (error) {
-    console.error('Registration error:', error);
+  } catch (error: unknown) {
+    const errorMessage = error instanceof Error ? error.message : 'Database error';
+    console.error('Registration error details:', error);
     return NextResponse.json(
-      { error: 'Failed to create teacher account.' },
+      {
+        error: `Teacher registration failed: ${errorMessage}. (Ensure database schema is pushed via 'npx prisma db push')`,
+      },
       { status: 500 }
     );
   }

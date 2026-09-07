@@ -22,7 +22,7 @@ export async function POST(req: Request) {
 
     if (!user) {
       return NextResponse.json(
-        { error: 'Invalid email or password.' },
+        { error: 'Invalid email or password. Please verify your credentials or register.' },
         { status: 401 }
       );
     }
@@ -65,10 +65,13 @@ export async function POST(req: Request) {
     });
 
     return response;
-  } catch (error) {
-    console.error('Login error:', error);
+  } catch (error: unknown) {
+    const errorMessage = error instanceof Error ? error.message : 'Database connection error';
+    console.error('Login error details:', error);
     return NextResponse.json(
-      { error: 'An internal server error occurred.' },
+      {
+        error: `Authentication failed: ${errorMessage}. (Ensure database tables are pushed via 'npx prisma db push')`,
+      },
       { status: 500 }
     );
   }
