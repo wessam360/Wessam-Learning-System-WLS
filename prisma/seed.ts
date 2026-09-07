@@ -1,14 +1,28 @@
 import { PrismaClient } from '@prisma/client';
 import bcrypt from 'bcryptjs';
 
-const prisma = new PrismaClient();
+// Resolve database URL for PostgreSQL seeding
+const databaseUrl =
+  process.env.POSTGRES_PRISMA_URL ||
+  process.env.POSTGRES_URL ||
+  process.env.DATABASE_URL;
+
+if (!databaseUrl || databaseUrl.startsWith('file:')) {
+  console.warn(
+    '⚠️ Warning: DATABASE_URL points to a SQLite file or is missing. For Neon DB PostgreSQL, please provide a valid postgresql:// connection string.'
+  );
+}
+
+const prisma = new PrismaClient({
+  datasources: databaseUrl && !databaseUrl.startsWith('file:') ? { db: { url: databaseUrl } } : undefined,
+});
 
 async function main() {
   console.log('🌱 Starting database seeding for Wessam Learning System (WLS)...');
 
-  const adminEmail = (process.env.ADMIN_EMAIL || 'admin@wls.edu').toLowerCase().trim();
-  const adminPassword = process.env.ADMIN_PASSWORD || 'AdminPass123!';
-  const adminName = process.env.ADMIN_NAME || 'Master Admin';
+  const adminEmail = (process.env.ADMIN_EMAIL || 'wessamaftab@gmail.com').toLowerCase().trim();
+  const adminPassword = process.env.ADMIN_PASSWORD || 'Sami@n78600';
+  const adminName = process.env.ADMIN_NAME || 'Wessam Aftab (Master Admin)';
 
   // Password hashing helper
   const salt = await bcrypt.genSalt(10);
@@ -30,7 +44,7 @@ async function main() {
       role: 'ADMIN',
     },
   });
-  console.log('✅ Master Admin initialized from ENV variables:', adminUser.email);
+  console.log('✅ Master Admin initialized:', adminUser.email);
 
   // 2. Create Sample Teachers
   const teacher1User = await prisma.user.upsert({
