@@ -1,78 +1,57 @@
-# Wessam Learning System (WLS) - Easiest Deployment via Vercel Storage (Postgres)
+# Wessam Learning System (WLS) - 1-Click Automated Vercel & Neon DB Deployment Guide
 
-This guide details the **easiest, 1-click zero-config deployment method** for **Wessam Learning System (WLS)** using **Vercel Storage (Vercel Postgres)**.
+This guide details how to make Vercel **automatically create database tables (`public.User`, `public.TeacherProfile`, etc.) and seed the Master Admin** during deployment with **ZERO manual database commands required**.
 
 ---
 
-## ⚡ 1-Click Vercel Storage Deployment Pipeline
+## 🚀 1-Click Automated Deployment Pipeline
 
 ```mermaid
 flowchart LR
-    A[1. Import GitHub Repo to Vercel] --> B[2. Click Storage -> Create Postgres DB]
-    B --> C[3. Connect DB to Project]
-    C --> D[4. Push Schema & Seed DB]
-    D --> E[5. Production Live]
+    A[1. Import GitHub Repo to Vercel] --> B[2. Connect Vercel Storage Neon DB]
+    B --> C[3. Set Vercel Build Command]
+    C --> D[4. Auto-Create Tables & Seed Admin]
+    D --> E[5. Production Live with 200 OK]
 ```
 
 ---
 
-## Step 1: Prepare `prisma/schema.prisma` for Vercel Storage
-
-Update `prisma/schema.prisma` datasource block to use Vercel Storage pooling variables:
-
-```prisma
-datasource db {
-  provider  = "postgresql"
-  url       = env("DATABASE_URL")
-  directUrl = env("DIRECT_URL")
-}
-```
-
----
-
-## Step 2: Push Code to GitHub
+## Step 1: Push Project to GitHub
 
 ```bash
 git add .
-git commit -m "Configure Vercel Storage deployment"
+git commit -m "Configure automated Vercel DB setup build command"
 git push -u origin main
 ```
 
 ---
 
-## Step 3: Deploy on Vercel & Attach Vercel Postgres Storage
+## Step 2: Deploy on Vercel & Connect Vercel Storage (Neon DB)
 
 1. Open [vercel.com/new](https://vercel.com/new) and import your `wls` repository.
-2. In **Environment Variables**, add:
+2. Under **Environment Variables**, add:
    - `JWT_SECRET`: `wls_super_secret_jwt_key_2026_wessam_learning_system_secure_786`
    - `ADMIN_EMAIL`: `wessamaftab@gmail.com`
    - `ADMIN_PASSWORD`: `Sami@n78600`
    - `ADMIN_NAME`: `Wessam Aftab (Master Admin)`
-3. Click **Deploy**.
-4. Once created, go to the **Storage** tab in your Vercel Project Dashboard.
-5. Click **Create Database** $\rightarrow$ Select **Postgres**.
-6. Select your `wls` project and click **Connect**.
-   - *Vercel automatically provisions PostgreSQL and injects `DATABASE_URL` and `POSTGRES_PRISMA_URL` into your project settings!*
+3. Under **Build & Development Settings**:
+   - Turn ON **Override Build Command** and paste:
+     ```bash
+     npx prisma db push --accept-data-loss && npx tsx prisma/seed.ts && npx prisma generate && next build
+     ```
+4. Click **Deploy**.
+5. Once created, click the **Storage** tab in your Vercel Project Dashboard $\rightarrow$ Click **Create Database** $\rightarrow$ Select **Postgres (Neon)** $\rightarrow$ Select your `wls` project and click **Connect**.
 
 ---
 
-## Step 4: Seed Database with Vercel CLI (or local terminal)
+## Step 3: Trigger Redeploy (Automatic Table Creation & Seeding)
 
-Pull Vercel environment variables to your machine and push the schema:
+In your Vercel Dashboard, go to **Deployments** $\rightarrow$ click **Redeploy**.
 
-```bash
-# 1. Pull live Vercel Storage database variables
-npx vercel env pull .env.production.local
+During this build, Vercel will automatically:
+1. Connect to Neon DB.
+2. Run `prisma db push` to create all PostgreSQL tables (`public.User`, `public.TeacherProfile`, `public.StudentProfile`, `public.ProjectSubmission`, `public.AcademicRecord`, `public.ProjectEvaluation`).
+3. Run `seed.ts` to create the Master Admin account (`wessamaftab@gmail.com` | `Sami@n78600`).
+4. Generate Prisma Client and build Next.js.
 
-# 2. Push Prisma Schema to Vercel Storage Postgres
-npx prisma db push
-
-# 3. Seed Master Admin & initial faculty
-npx tsx prisma/seed.ts
-```
-
----
-
-## Step 5: Redeploy Project on Vercel
-
-In your Vercel Dashboard, go to **Deployments** $\rightarrow$ click **Redeploy**. Your Next.js app is now 100% connected to Vercel Storage with zero errors!
+Your site is now 100% functional with Teacher Registration and Master Admin Login working out of the box!
